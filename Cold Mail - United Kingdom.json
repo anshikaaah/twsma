@@ -1,0 +1,865 @@
+{
+  "name": "Cold Mail - United Kingdom",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// n8n merges inputs differently, so each item contains fields from both inputs\nconst output = [];\n\nfor (const item of items) {\n  const lead = item.json;\n\n  // unsubscribed list may come as array inside one field\n  const unsubList = lead['Get Unsubscribed List'] || lead['Unsubscribed'] || [];\n  const unsubEmails = Array.isArray(unsubList)\n    ? unsubList.map(r => (r.Email || '').toLowerCase().trim())\n    : [(unsubList.Email || '').toLowerCase().trim()];\n\n  const email = (lead.Email || '').toLowerCase().trim();\n  const isUnsub = unsubEmails.includes(email);\n\n  output.push({\n    json: {\n      ...lead,\n      _isUnsubscribed: isUnsub\n    }\n  });\n}\n\nreturn output;\n"
+      },
+      "id": "ade3d123-b4d4-42f3-a460-6324b613cede",
+      "name": "Filter Unsubscribed (Code)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        32
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e81f04bd-a01b-4d06-96f3-5373fd146e91",
+      "name": "Merge Leads + Unsubs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        -736,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        112
+      ],
+      "id": "aa7afe21-4416-41e3-8bd9-5cf30d65dc73",
+      "name": "Wait",
+      "webhookId": "59d0e464-9eef-4147-9d07-e283193ed822"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1248,
+        -160
+      ],
+      "id": "af73c42c-4c36-4b4a-a74a-e43d64f52ee3",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        592,
+        -64
+      ],
+      "id": "374a9f23-d17f-4a53-bd6d-d3f876c0ead0",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get templates from previous node\nconst templates = items.map(item => item.json);\n\n// Check if templates exist\nif (!templates || templates.length === 0) {\n  throw new Error('No templates found');\n}\n\n// Pick a random template\nconst index = Math.floor(Math.random() * templates.length);\nconst template = templates[index];\n\n// Convert body to HTML\nconst bodyHtml = template.Body.replace(/\\n/g, '<br>');\n\n// Return in n8n-compatible format\nreturn [\n  {\n    json: {\n      subject: template.Subject,\n      body: bodyHtml\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -176
+      ],
+      "id": "402be489-e3b8-49e0-9304-e545269a7480",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {}
+          ]
+        }
+      },
+      "id": "76a9cc43-8477-46f3-8fcd-a3255090f60d",
+      "name": "Cron 2:00 PM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno",
+          "mode": "list",
+          "cachedResultName": "Cold email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1585656989,
+          "mode": "list",
+          "cachedResultName": "Sheet10",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno/edit#gid=1585656989"
+        },
+        "options": {}
+      },
+      "id": "a6597458-5e25-4e0a-a5b5-75c887961103",
+      "name": "Get Unsubscribed List2",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        624
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "London",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "ebba1169-622b-4ee1-8ab3-43f67932ce0f",
+      "name": "Google Sheets - Leads8",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        -192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "London",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.Name }}",
+            "Email": "={{ $json.Email }}",
+            "Time": "={{ new Date().toLocaleTimeString(\"en-GB\", { timeZone: \"Asia/Kolkata\", hour12: false }) }}",
+            "Send Status": "={{ $json['Send Status'] }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Send Status",
+              "displayName": "Send Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1616,
+        -160
+      ],
+      "id": "2771d650-dbfc-42ad-9e04-e970290894cd",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Log The Status",
+        "height": 280,
+        "width": 300
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1328,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "d5580b00-fe64-463f-81bf-00d8ae76a84b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Get Email Templates From Google Sheet\n",
+        "height": 300,
+        "width": 420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -112,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "02398a7f-c85d-4495-ba74-0fa43125b7a3",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "   ## Get Leads Data From Google Sheet",
+        "height": 320,
+        "width": 380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -752,
+        -64
+      ],
+      "typeVersion": 1,
+      "id": "97193dc2-473b-4cf0-b567-c8b15608052f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Jewel Mounts"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        16
+      ],
+      "id": "6bab9ed3-c271-4228-a07d-4b6ab3889dcf",
+      "name": "Gmail2",
+      "webhookId": "3fbf6bf1-efca-44a5-8ed0-8e0fb1d4143f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BCMipbFxZSbVfsRw",
+          "name": "jewelmount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f6a6ba02-422b-4e7c-a73e-03901cc2db0c",
+              "name": "body",
+              "value": "={{ $json.body.replace(\"[name]\", $json[\"Name\"] && $json[\"Name\"].trim() !== '' ? $json[\"Name\"].trim() : \"there\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        -64
+      ],
+      "id": "7eecfc6a-aef3-490f-8a90-fdda02556f58",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno",
+          "mode": "list",
+          "cachedResultName": "Cold email",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1892279726,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1sppW5zvzYHtwn811P6rPbhqlAoVS1IRdJRbTHSbKAno/edit#gid=1892279726"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        160,
+        -176
+      ],
+      "id": "943fed8c-0ed3-4753-b1ff-7fb6dac2523f",
+      "name": "Google Sheets2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        32
+      ],
+      "id": "1d38a2dc-b875-4fca-8483-445de844823c",
+      "name": "Loop Over Items2"
+    },
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 18,
+              "minute": 30
+            }
+          ]
+        }
+      },
+      "id": "2ec8836d-ae07-412d-a84d-2d50b79321ff",
+      "name": "Cron 6:30 PM2",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 710334669,
+          "mode": "list",
+          "cachedResultName": "Cambridge",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=710334669"
+        },
+        "options": {}
+      },
+      "id": "b61a70d5-7739-4925-b682-5d97b86d1ca5",
+      "name": "Google Sheets - Leads9",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        112
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1741623411,
+          "mode": "list",
+          "cachedResultName": "Chelmsford",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=1741623411"
+        },
+        "options": {}
+      },
+      "id": "e65045b6-9a02-4bb6-8dae-365ac157c0f0",
+      "name": "Google Sheets - Leads10",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        256
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1442753100,
+          "mode": "list",
+          "cachedResultName": "Norwich",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=1442753100"
+        },
+        "options": {}
+      },
+      "id": "0688b66e-dfd2-4ae8-91dc-cc80c8f5aec6",
+      "name": "Google Sheets - Leads11",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        432
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8c2a6a3d-63e2-49bd-90d6-ddff5d295dc0",
+              "leftValue": "={{ $json.Email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        48
+      ],
+      "id": "4067ac8d-aa5a-4c91-96be-af7a69256a48",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ",
+          "mode": "list",
+          "cachedResultName": "UK",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 16609056,
+          "mode": "list",
+          "cachedResultName": "Ely",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YFFJ71INz-UbiILCkRr5eyTtK52qJc5BR1_ui2EqiGQ/edit#gid=16609056"
+        },
+        "options": {}
+      },
+      "id": "c00e4578-1e9a-49f9-b605-8fe8169009d4",
+      "name": "Google Sheets - Leads12",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -992,
+        -48
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "l9etH9wAFiP6HPhM",
+          "name": "Jewel Mount"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Cron 2:00 PM": [
+      {
+        "json": {}
+      }
+    ]
+  },
+  "connections": {
+    "Filter Unsubscribed (Code)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Leads + Unsubs": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron 2:00 PM": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Leads8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Unsubscribed List2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Leads9",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Leads10",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Leads11",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Leads12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unsubscribed List2": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Leads8": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail2": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gmail2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron 6:30 PM2": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Leads8",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Unsubscribed List2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Leads9": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Leads10": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Leads11": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Filter Unsubscribed (Code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Leads12": {
+      "main": [
+        [
+          {
+            "node": "Merge Leads + Unsubs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "333cb998-e49e-4b70-89b5-737c7a9b06a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d7e3418d5dc6b3e82baac9ec2286e1cef61c2557b5ee9ffeb644c7b5d30eb927"
+  },
+  "id": "L8oRh80SOaIaJhd2",
+  "tags": []
+}
